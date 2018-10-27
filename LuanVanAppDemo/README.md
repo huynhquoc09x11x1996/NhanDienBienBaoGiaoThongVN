@@ -1,12 +1,18 @@
-# TensorFlow (1.4.0) Image Classifier Gradle Standalone Port
+Mô tả màn hình:
 
-- Clone the project, and checkout the tag `1.4.0`
-- Import it on Android Studio
-- Run it
-- That's all.
+***Màn hình ClassifierActivity:*** dùng tensorflow để nhận dạng toàn bộ 1 frame cùng kích cở màn hình
 
-This project is a way to get started with TensorFlow Image Classifier quickly.
+***Màn hình Main2Activity:*** nhận dạng biển báo từ camera có vẽ bounding box xung quanh đối tượng và có hiển thị kết quả review ra
 
-I am not planning to maintain it. If you need an updated version, build it yourself using hints from this [blog post][blog-post].
+***Màn hình Main3Activity:*** nhận diện từ video
 
-[blog-post]: http://nilhcem.com/android/custom-tensorflow-classifier
+
+Tham khảo: 
+
+
+1)https://codelabs.developers.google.com/codelabs/tensorflow-for-poets/index.html?fbclid=IwAR2wMe1fGFCd8vkUK8IqhCl0WZsR1-KD8SM_lg2vyXTd8xSaFlN5GrXJrAA#3
+
+
+    ***Tensorflow***
+    ***Profobuf file cho android***
+    *****retrained lại 1 neural network*
