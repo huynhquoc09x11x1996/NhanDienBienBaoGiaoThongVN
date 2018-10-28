@@ -2,11 +2,16 @@ package com.hbq.demoluanvan.activity;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.hbq.demoluanvan.R;
 import com.hbq.demoluanvan.env.ImageUtils;
@@ -22,7 +27,6 @@ import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
-import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -39,6 +43,9 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     public static final String TAG = "HBQ_LV_CTU";
 
     private CameraBridgeViewBase mCameraView;
+    private TextView mTxtShow;
+    private ImageView mImgShow;
+    private LinearLayout mLLShow;
 
     private Mat mDst;
     private Mat mGray;
@@ -47,13 +54,15 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     Rect mRect;
     private CascadeClassifier mCascade;
     private Classifier classifier;
+
+    private boolean isDetectedMultiscale = false;
+
+
     private static final int INPUT_SIZE = 299;
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128f;
     private static final String INPUT_NAME = "Mul";
     private static final String OUTPUT_NAME = "final_result";
-
-
     private static final String MODEL_FILE = "file:///android_asset/optimized_graph_neg.pb";
     private static final String LABEL_FILE =
             "file:///android_asset/retrained_labels_neg.txt";
@@ -63,10 +72,67 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_camera2);
+
         initView();
+        initClassifierAndLabel();
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (mCascade != null && mRgba != null && mGray != null) {
+                    mCascade.detectMultiScale(mGray, mSigns, 1.1, 3, 0, new Size(150, 150), new Size(1000, 1000));
+                }
+            }
+        }, 0, 100);
+
+    }
+
+    Bitmap mBitmapShow = Bitmap.createBitmap(299, 299, Bitmap.Config.ARGB_8888);
+
+    @SuppressLint("StaticFieldLeak")
+    @Override
+    public Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        Log.e("Today", "inputFrame: " + inputFrame.rgba().size().toString());
+
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
+        if (mSigns != null) {
+            Rect[] arrayRect = mSigns.toArray();
+            if (arrayRect.length > 0) {
+                for (Rect rect : arrayRect) {
+                    mRect = ImageUtils.paddingRect(rect, 100, mRgba.width(), mRgba.height());
+
+                    if (rect.area() > 10000) {
+                        Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), new Scalar(255, 0, 0), 3);
+
+                        Log.e("Today", "mRect: " + mRect.toString());
+                        Mat mMatShow = inputFrame.rgba().submat(mRect);
+                        Imgproc.resize(mMatShow, mMatShow, new Size(299, 299));
+                        Utils.matToBitmap(mMatShow, mBitmapShow);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mImgShow.setImageBitmap(mBitmapShow);
+                                new NhanDangBienBaoTask().execute(mBitmapShow);
+                            }
+                        });
+
+                        Imgproc.rectangle(mRgba, rect.tl(), rect.br(), new Scalar(0, 255, 0), 3);
+                    }
+                }
+            }
+        }
+
+        return mRgba;
+    }
+
+
+    private void initClassifierAndLabel() {
         mClasses.put("001", " Cấm ngược chiều");
         mClasses.put("002", " Cấm dừng và đỗ xe");
         mClasses.put("003", " Trọng lượng cho phép");
@@ -100,31 +166,13 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
                         IMAGE_STD,
                         INPUT_NAME,
                         OUTPUT_NAME);
-
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (mRgba != null && mRgba.width() > 0 && mRgba.height() > 0 && mRect != null) {
-                    Log.e("Today", "Area Rect: " + mRect.area());
-                    Bitmap bm = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
-                    Utils.matToBitmap(mRgba, bm);
-                    bm = Bitmap.createBitmap(bm, mRect.x, mRect.y, mRect.width, mRect.height);
-                    bm = Bitmap.createScaledBitmap(bm, 299, 299, true);
-                    Imgproc.putText(mRgba, mClasses.get(classifier.recognizeImage(bm).get(0).getTitle()), new Point(mRect.x, mRect.y - 30), 3, 1, new Scalar(255, 0, 0, 255), 2);
-                    Log.e("Today", "Label: " + mClasses.get(classifier.recognizeImage(bm).get(0).getTitle()));
-                }
-            }
-        }, 0, 500);
-
     }
-
 
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
         mGray = new Mat(height, width, CvType.CV_8UC1);
-        mDst = new Mat(height, width, CvType.CV_8UC1);
+        mDst = new Mat(height, width, CvType.CV_8UC4);
         mSigns = new MatOfRect();
     }
 
@@ -135,30 +183,33 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         mGray.release();
     }
 
+    Bitmap bm;
 
     @SuppressLint("StaticFieldLeak")
-    @Override
-    public Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        if (mCascade != null) {
-            mGray = inputFrame.gray();
-            mRgba = inputFrame.rgba();
-            mCascade.detectMultiScale(mGray, mSigns, 1.1, 3, 0, new Size(100, 100), new Size(800, 800));
-            Rect[] signsArray = mSigns.toArray();
-            Log.e("Today", "Number of sign: " + signsArray.length);
-            if (signsArray.length > 0) {
-                for (Rect rect : signsArray) {
-                    if (rect.area() > 10000) {
-                        mRect = ImageUtils.paddingMat(rect, 100);
-                        Imgproc.rectangle(mRgba, new Point(mRect.x, mRect.y), new Point(mRect.x + mRect.width, mRect.y + mRect.height), new Scalar(255, 0, 0), 3);
-                    }
-                }
+    class NhanDangBienBaoTask extends AsyncTask<Bitmap, String, Void> {
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            if (!values[0].isEmpty()) {
+                mTxtShow.setTextColor(Color.rgb(random0to255(), random0to255(), random0to255()));
+                mTxtShow.setText(values[0]);
             }
-            mGray.release();
-            inputFrame.gray().release();
         }
-        return mRgba;
+
+        @Override
+        protected Void doInBackground(Bitmap... bitmaps) {
+            String label = mClasses.get(classifier.recognizeImage(bitmaps[0]).get(0).getTitle());
+            publishProgress(label);
+            return null;
+        }
+
     }
 
+    int random0to255() {
+        int range = 255 + 1;
+        return (int) (Math.random() * range);
+    }
 
     @Override
     protected void onPause() {
@@ -185,6 +236,9 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     private void initView() {
         System.loadLibrary("opencv_java3");
         mCameraView = findViewById(R.id.java_camera_view);
+        mTxtShow = findViewById(R.id.txt_show);
+        mImgShow = findViewById(R.id.img_show);
+        mLLShow = findViewById(R.id.ll_show);
         mCameraView.setCvCameraViewListener(this);
     }
 

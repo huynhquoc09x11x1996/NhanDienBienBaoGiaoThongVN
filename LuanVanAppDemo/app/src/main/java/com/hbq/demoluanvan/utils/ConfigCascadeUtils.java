@@ -17,9 +17,9 @@ public class ConfigCascadeUtils {
     public static CascadeClassifier setup(Activity activity) {
         CascadeClassifier mCascade = null;
         try {
-            InputStream inputStream = activity.getResources().openRawResource(R.raw.cascade2);
-            File cascadeDir = activity.getDir("cascade2", Context.MODE_PRIVATE);
-            File cascadeFile = new File(cascadeDir, "cascade2.xml");
+            InputStream inputStream = activity.getResources().openRawResource(R.raw.cascade3);
+            File cascadeDir = activity.getDir("cascade3", Context.MODE_PRIVATE);
+            File cascadeFile = new File(cascadeDir, "cascade3.xml");
             FileOutputStream os = new FileOutputStream(cascadeFile);
             byte[] buffer = new byte[4096];
             int byteread;
