@@ -97,19 +97,18 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     @SuppressLint("StaticFieldLeak")
     @Override
     public Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        Log.e("Today", "inputFrame: " + inputFrame.rgba().size().toString());
-
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
         if (mSigns != null) {
             Rect[] arrayRect = mSigns.toArray();
             if (arrayRect.length > 0) {
                 for (Rect rect : arrayRect) {
-                    mRect = ImageUtils.paddingRect(rect, 100, mRgba.width(), mRgba.height());
+                    mRect = ImageUtils.paddingRect(rect, 50, mRgba.rows(), mRgba.cols());
 
+                    Log.e("Camera2Activity", String.format("mRect( %s, %s) - (%s, %s)", mRect.x, mRect.y, mRect.width, mRect.height));
+                    Log.e("Camera2Activity", String.format("rect( %s, %s)- (%s, %s)", rect.x, rect.y, rect.width, rect.height));
+                    Log.e("Camera2Activity", String.format("Origin( %sx%s)", inputFrame.rgba().rows(), inputFrame.rgba().cols()));
                     if (rect.area() > 10000) {
-                        Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), new Scalar(255, 0, 0), 3);
-
                         Log.e("Today", "mRect: " + mRect.toString());
                         Mat mMatShow = inputFrame.rgba().submat(mRect);
                         Imgproc.resize(mMatShow, mMatShow, new Size(299, 299));
@@ -121,9 +120,9 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
                                 new NhanDangBienBaoTask().execute(mBitmapShow);
                             }
                         });
-
-                        Imgproc.rectangle(mRgba, rect.tl(), rect.br(), new Scalar(0, 255, 0), 3);
                     }
+                    Imgproc.rectangle(mRgba, rect.tl(), rect.br(), new Scalar(0, 255, 0), 3);
+                    Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), new Scalar(255, 0, 0), 3);
                 }
             }
         }
@@ -207,7 +206,7 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     }
 
     int random0to255() {
-        int range = 255 + 1;
+        int range = 256;
         return (int) (Math.random() * range);
     }
 
