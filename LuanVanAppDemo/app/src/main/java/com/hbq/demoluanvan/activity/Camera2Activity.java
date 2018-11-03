@@ -33,8 +33,6 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class Camera2Activity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -79,15 +77,14 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         initView();
         initClassifierAndLabel();
 
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (mCascade != null && mRgba != null && mGray != null) {
-                    mCascade.detectMultiScale(mGray, mSigns, 1.1, 3, 0, new Size(150, 150), new Size(1000, 1000));
-                }
-            }
-        }, 0, 100);
+//        Timer timer = new Timer();
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                if (mBitmapShow!=null) {
+//                }
+//            }
+//        }, 0, 100);
 
     }
 
@@ -98,33 +95,32 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     public Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
-        if (mSigns != null) {
-            Rect[] arrayRect = mSigns.toArray();
-            if (arrayRect.length > 0) {
-                for (Rect rect : arrayRect) {
-                    mRect = ImageUtils.paddingRect(rect, 50, mRgba.rows(), mRgba.cols());
-
-                    //Log.e("Camera2Activity", String.format("mRect( %s, %s) - (%s, %s)", mRect.x, mRect.y, mRect.width, mRect.height));
-                    //Log.e("Camera2Activity", String.format("rect( %s, %s)- (%s, %s)", rect.x, rect.y, rect.width, rect.height));
-                    //Log.e("Camera2Activity", String.format("Origin( %sx%s)", inputFrame.rgba().rows(), inputFrame.rgba().cols()));
-
-                    if (rect.area() > 10000) {
-                        Mat mMatShow = inputFrame.rgba().submat(mRect);
-                        Imgproc.resize(mMatShow, mMatShow, new Size(299, 299));
-                        Utils.matToBitmap(mMatShow, mBitmapShow);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mImgShowPreview.setImageBitmap(mBitmapShow);
-                                new NhanDangBienBaoTask().execute(mBitmapShow);
-                            }
-                        });
+        if (mCascade != null) {
+            mCascade.detectMultiScale(mGray, mSigns, 1.1, 3, 0, new Size(150, 150), new Size(1000, 1000));
+            if (mSigns != null) {
+                Rect[] arrayRect = mSigns.toArray();
+                if (arrayRect.length > 0) {
+                    for (Rect rect : arrayRect) {
+                        mRect = ImageUtils.paddingRect(rect, 50, mRgba.rows(), mRgba.cols());
+                        if (rect.area() > 10000) {
+                            Mat mMatShow = inputFrame.rgba().submat(mRect);
+                            Imgproc.resize(mMatShow, mMatShow, new Size(299, 299));
+                            Utils.matToBitmap(mMatShow, mBitmapShow);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mImgShowPreview.setImageBitmap(mBitmapShow);
+                                    new NhanDangBienBaoTask().execute(mBitmapShow);
+                                }
+                            });
+                            Imgproc.rectangle(mRgba, rect.tl(), rect.br(), new Scalar(255, 0, 0), 2);
+                            Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), new Scalar(0, 255, 0), 2);
+                        }
                     }
-                    Imgproc.rectangle(mRgba, rect.tl(), rect.br(), new Scalar(0, 255, 0), 3);
-                    Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), new Scalar(255, 0, 0), 3);
                 }
             }
         }
+
 
         return mRgba;
     }
@@ -216,7 +212,6 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         if (mCameraView != null) {
             mCameraView.disableView();
         }
-
     }
 
     @Override
@@ -238,7 +233,6 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         mTxtShow = findViewById(R.id.txt_show);
         mImgShowHandle = findViewById(R.id.img_show_handle);
         mImgShowPreview = findViewById(R.id.img_show_preview);
-
         mCameraView.setCvCameraViewListener(this);
     }
 
