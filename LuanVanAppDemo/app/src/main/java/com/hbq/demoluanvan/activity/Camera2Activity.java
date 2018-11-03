@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.hbq.demoluanvan.R;
@@ -44,8 +43,8 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
 
     private CameraBridgeViewBase mCameraView;
     private TextView mTxtShow;
-    private ImageView mImgShow;
-    private LinearLayout mLLShow;
+    private ImageView mImgShowHandle;
+    private ImageView mImgShowPreview;
 
     private Mat mDst;
     private Mat mGray;
@@ -105,18 +104,18 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
                 for (Rect rect : arrayRect) {
                     mRect = ImageUtils.paddingRect(rect, 50, mRgba.rows(), mRgba.cols());
 
-                    Log.e("Camera2Activity", String.format("mRect( %s, %s) - (%s, %s)", mRect.x, mRect.y, mRect.width, mRect.height));
-                    Log.e("Camera2Activity", String.format("rect( %s, %s)- (%s, %s)", rect.x, rect.y, rect.width, rect.height));
-                    Log.e("Camera2Activity", String.format("Origin( %sx%s)", inputFrame.rgba().rows(), inputFrame.rgba().cols()));
+                    //Log.e("Camera2Activity", String.format("mRect( %s, %s) - (%s, %s)", mRect.x, mRect.y, mRect.width, mRect.height));
+                    //Log.e("Camera2Activity", String.format("rect( %s, %s)- (%s, %s)", rect.x, rect.y, rect.width, rect.height));
+                    //Log.e("Camera2Activity", String.format("Origin( %sx%s)", inputFrame.rgba().rows(), inputFrame.rgba().cols()));
+
                     if (rect.area() > 10000) {
-                        Log.e("Today", "mRect: " + mRect.toString());
                         Mat mMatShow = inputFrame.rgba().submat(mRect);
                         Imgproc.resize(mMatShow, mMatShow, new Size(299, 299));
                         Utils.matToBitmap(mMatShow, mBitmapShow);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mImgShow.setImageBitmap(mBitmapShow);
+                                mImgShowPreview.setImageBitmap(mBitmapShow);
                                 new NhanDangBienBaoTask().execute(mBitmapShow);
                             }
                         });
@@ -193,6 +192,7 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
             if (!values[0].isEmpty()) {
                 mTxtShow.setTextColor(Color.rgb(random0to255(), random0to255(), random0to255()));
                 mTxtShow.setText(values[0]);
+                mImgShowHandle.setImageBitmap(mBitmapShow);
             }
         }
 
@@ -236,8 +236,9 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         System.loadLibrary("opencv_java3");
         mCameraView = findViewById(R.id.java_camera_view);
         mTxtShow = findViewById(R.id.txt_show);
-        mImgShow = findViewById(R.id.img_show);
-        mLLShow = findViewById(R.id.ll_show);
+        mImgShowHandle = findViewById(R.id.img_show_handle);
+        mImgShowPreview = findViewById(R.id.img_show_preview);
+
         mCameraView.setCvCameraViewListener(this);
     }
 
