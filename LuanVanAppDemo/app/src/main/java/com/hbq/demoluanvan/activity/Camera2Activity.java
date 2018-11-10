@@ -52,8 +52,6 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     private CascadeClassifier mCascade;
     private Classifier classifier;
 
-    private boolean isDetectedMultiscale = false;
-
 
     private static final int INPUT_SIZE = 299;
     private static final int IMAGE_MEAN = 128;
@@ -77,15 +75,6 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         initView();
         initClassifierAndLabel();
 
-//        Timer timer = new Timer();
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                if (mBitmapShow!=null) {
-//                }
-//            }
-//        }, 0, 100);
-
     }
 
     Bitmap mBitmapShow = Bitmap.createBitmap(299, 299, Bitmap.Config.ARGB_8888);
@@ -103,15 +92,16 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
                     for (Rect rect : arrayRect) {
                         mRect = ImageUtils.paddingRect(rect, 50, mRgba.rows(), mRgba.cols());
                         if (rect.area() > 10000) {
-                            Mat mMatShow = inputFrame.rgba().submat(mRect);
-                            Imgproc.resize(mMatShow, mMatShow, new Size(299, 299));
-                            Utils.matToBitmap(mMatShow, mBitmapShow);
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mImgShowPreview.setImageBitmap(mBitmapShow);
-                                    new NhanDangBienBaoTask().execute(mBitmapShow);
-                                }
+                            try {
+                                Mat mMatShow = inputFrame.rgba().submat(mRect);
+                                Imgproc.resize(mMatShow, mMatShow, new Size(299, 299));
+                                Utils.matToBitmap(mMatShow, mBitmapShow);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            runOnUiThread(() -> {
+                                mImgShowPreview.setImageBitmap(mBitmapShow);
+                                new NhanDangBienBaoTask().execute(mBitmapShow);
                             });
                             Imgproc.rectangle(mRgba, rect.tl(), rect.br(), new Scalar(255, 0, 0), 2);
                             Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), new Scalar(0, 255, 0), 2);
@@ -176,8 +166,6 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         mRgba.release();
         mGray.release();
     }
-
-    Bitmap bm;
 
     @SuppressLint("StaticFieldLeak")
     class NhanDangBienBaoTask extends AsyncTask<Bitmap, String, Void> {

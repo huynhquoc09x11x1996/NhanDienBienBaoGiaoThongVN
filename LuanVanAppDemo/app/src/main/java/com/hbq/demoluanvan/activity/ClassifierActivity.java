@@ -19,13 +19,11 @@ package com.hbq.demoluanvan.activity;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.SystemClock;
-import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
@@ -40,10 +38,6 @@ import com.hbq.demoluanvan.widget.OverlayView;
 import com.hbq.demoluanvan.widget.OverlayView.DrawCallback;
 import com.hbq.demoluanvan.widget.ResultsView;
 
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 
 import java.util.Arrays;
@@ -89,9 +83,9 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     public static final String OUTPUT_NAME = "final_result";
 
 
-    private static final String MODEL_FILE = "file:///android_asset/optimized_graph_neg.pb";
+    private static final String MODEL_FILE = "file:///android_asset/optimized_4kreduce.pb";
     private static final String LABEL_FILE =
-            "file:///android_asset/retrained_labels_neg.txt";
+            "file:///android_asset/labels_4kreduce.txt";
 
 
     private static final boolean MAINTAIN_ASPECT = true;

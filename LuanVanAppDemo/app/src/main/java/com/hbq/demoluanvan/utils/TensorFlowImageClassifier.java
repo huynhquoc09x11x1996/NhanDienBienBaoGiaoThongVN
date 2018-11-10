@@ -165,13 +165,10 @@ public class TensorFlowImageClassifier implements Classifier {
         // Find the best classifications.
         PriorityQueue<Recognition> pq =
                 new PriorityQueue<Recognition>(
-                        3,
-                        new Comparator<Recognition>() {
-                            @Override
-                            public int compare(Recognition lhs, Recognition rhs) {
-                                // Intentionally reversed to put high confidence at the head of the queue.
-                                return Float.compare(rhs.getConfidence(), lhs.getConfidence());
-                            }
+                        1,
+                        (lhs, rhs) -> {
+                            // Intentionally reversed to put high confidence at the head of the queue.
+                            return Float.compare(rhs.getConfidence(), lhs.getConfidence());
                         });
         for (int i = 0; i < outputs.length; ++i) {
             if (outputs[i] > THRESHOLD) {
