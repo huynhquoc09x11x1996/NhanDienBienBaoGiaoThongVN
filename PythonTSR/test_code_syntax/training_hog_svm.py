@@ -86,12 +86,12 @@ for i, row_i in enumerate(all_data):
 
 OUTPUT = np.asarray(np.append(np.asmatrix(X), np.asmatrix(Y).T, axis=1))
 df = pd.DataFrame(OUTPUT)
-df.to_csv("data_6754.txt")
+df.to_csv("data_6754.csv")
 
 print("Finish preparing data for training!")
 print("So luong sample: ", len(all_data))
 
-data_train, data_test, label_train, label_test = train_test_split(X, Y, test_size=0.25, random_state=1)
+data_train, data_test, label_train, label_test = train_test_split(X, Y, test_size=1.0/3, random_state=1)
 clf = svm.LinearSVC(random_state=1)
 clf.fit(data_train, label_train)
 res = clf.predict(data_test)
