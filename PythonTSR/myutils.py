@@ -6,37 +6,6 @@ from sklearn.externals import joblib
 '''
     khu vuc xu ly opencv
 '''
-dict_classes = {
-    '001': 'cam nguoc chieu',
-    '002': 'cam dau huyen',
-    '003': '5T',
-    '004': 'tam giac giao nhau 2 ben',
-    '005': 'tam giac queo trai',
-    '006': 'vong xoay xanh',
-    '007': '2 nguoi qua duong',
-    '008': 'vuong xanh 1 nguoi qua duong',
-    '009': 'tam giac den giao thong',
-    '010': 'cam oto queo trai',
-    '011': 'dau cham thang',
-    '012': 'vuong xanh quay dau',
-    '013': 'tam giac silip',
-    '014': 'tam giac duong doc cao',
-    '015': '1 nguoi di bo cat ngang',
-    '016': 'Khu vuc cho',
-    '017': 'cam xe tho so',
-    '018': 'tam giac chu Z nam ngang',
-    '019': 'tron xanh mui ten dau huyen',
-    '020': 'Di cham',
-    '021': 'tam giac vang vong xoay',
-    '022': 'Hang rao',
-    '023': 'Sam set',
-    '024': 'tam giac 2 duong song song',
-    '025': 'Khoang cach 2 xe 2m',
-    '026': 'toc do 20_30_40_50_60',
-    '027': 'tron trang soc soc',
-    '028': 'Stop',
-    'unkown': 'unkown',
-}
 
 mSignCascade = cv2.CascadeClassifier("/Users/leclev1/Documents/LuanVanKHMT/PythonTSR/cascade3.xml")
 
@@ -91,18 +60,17 @@ locations = ((10, 20),)
 
 # HOG feature
 width = height = 48
-hog = cv2.HOGDescriptor(_winSize=(width, height),
-                        _blockSize=(width // 2, height // 2),
-                        _blockStride=(width // 4, height // 4),
-                        _cellSize=(width // 2, height // 2),
-                        _nbins=9,
-                        _derivAperture=1,
-                        _winSigma=-1,
-                        _histogramNormType=0,
-                        _L2HysThreshold=0.2,
-                        _gammaCorrection=1,
-                        _nlevels=64,
-                        _signedGradient=True)
+hog = cv2.HOGDescriptor(winSize,
+                        blockSize,
+                        blockStride,
+                        cellSize,
+                        nbins,
+                        derivAperture,
+                        winSigma,
+                        histogramNormType,
+                        L2HysThreshold,
+                        gammaCorrection,
+                        nlevels)
 
 
 def getDescriptorInFolder(list_object, class_name):
