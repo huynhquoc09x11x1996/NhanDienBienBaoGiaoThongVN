@@ -1,6 +1,7 @@
 package com.hbq.demoluanvan.activity;
 
 import android.annotation.SuppressLint;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -11,6 +12,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hbq.demoluanvan.R;
 import com.hbq.demoluanvan.env.ImageUtils;
@@ -82,15 +84,16 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
     @SuppressLint("StaticFieldLeak")
     @Override
     public Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
+        //mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
+
         if (mCascade != null) {
             mCascade.detectMultiScale(mGray, mSigns, 1.1, 3, 0, new Size(150, 150), new Size(1000, 1000));
             if (mSigns != null) {
                 Rect[] arrayRect = mSigns.toArray();
                 if (arrayRect.length > 0) {
                     for (Rect rect : arrayRect) {
-                        mRect = ImageUtils.paddingRect(rect, 50, mRgba.rows(), mRgba.cols());
+                        mRect = ImageUtils.paddingRect(rect, 50, mGray.rows(), mGray.cols());
                         if (rect.area() > 10000) {
                             try {
                                 Mat mMatShow = inputFrame.rgba().submat(mRect);
@@ -103,8 +106,8 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
                                 mImgShowPreview.setImageBitmap(mBitmapShow);
                                 new NhanDangBienBaoTask().execute(mBitmapShow);
                             });
-                            Imgproc.rectangle(mRgba, rect.tl(), rect.br(), new Scalar(255, 0, 0), 2);
-                            Imgproc.rectangle(mRgba, mRect.tl(), mRect.br(), new Scalar(0, 255, 0), 2);
+                            Imgproc.rectangle(mGray, rect.tl(), rect.br(), new Scalar(255, 0, 0), 2);
+                            Imgproc.rectangle(mGray, mRect.tl(), mRect.br(), new Scalar(0, 255, 0), 2);
                         }
                     }
                 }
@@ -112,7 +115,7 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
         }
 
 
-        return mRgba;
+        return mGray;
     }
 
 
@@ -169,7 +172,6 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
 
     @SuppressLint("StaticFieldLeak")
     class NhanDangBienBaoTask extends AsyncTask<Bitmap, String, Void> {
-
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
@@ -240,4 +242,16 @@ public class Camera2Activity extends AppCompatActivity implements CameraBridgeVi
             }
         }
     };
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }
